@@ -17,14 +17,14 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
-            <artifactId>catalina</artifactId>
-            <version>6.0.29</version>
+            <artifactId>tomcat-catalina</artifactId>
+            <version>7.0.29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
-            <artifactId>coyote</artifactId>
-            <version>6.0.29</version>
+            <artifactId>tomcat-coyote</artifactId>
+            <version>7.0.29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -32,6 +32,17 @@
             <artifactId>junit</artifactId>
             <version>4.8.1</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.0.1</version>
         </dependency>
     </dependencies>
 </project>
