@@ -5,7 +5,6 @@ import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.RequestFilterValve;
 import org.apache.coyote.ActionCode;
-import org.apache.coyote.InputBuffer;
 import org.apache.tomcat.util.buf.ByteChunk;
 
 import javax.servlet.ServletException;
@@ -20,8 +19,6 @@ public class DumpValve extends RequestFilterValve {
         final org.apache.coyote.Request coyoteRequest = request.getCoyoteRequest();
 
         if ("POST".equals(request.getMethod())) {
-            final InputBuffer inputBuffer = coyoteRequest.getInputBuffer();
-
             ByteChunk body = new ByteChunk();
             body.setLimit(coyoteRequest.getContentLength());
 
@@ -44,10 +41,22 @@ public class DumpValve extends RequestFilterValve {
                 postBody = new String(bytes, encoding);
             }
 
+            String method = coyoteRequest.method().getString();
+            String queryString = coyoteRequest.queryString().getString();
+            String requestURI = coyoteRequest.requestURI().getString();
+
             coyoteRequest.getParameters().recycle();
             coyoteRequest.getParameters().setQueryStringEncoding(
                     request.getConnector().getURIEncoding());
-            coyoteRequest.action(ActionCode.REQ_SET_BODY_REPLAY, body);
+            try {
+                coyoteRequest.action((ActionCode) ActionCodeFactory.getRequestSetBodyReplayActionCode(), body);
+            } catch (Exception e) {
+                throw new ServletException(e);
+            }
+
+            coyoteRequest.method().setString(method);
+            coyoteRequest.queryString().setString(queryString);
+            coyoteRequest.requestURI().setString(requestURI);
         }
 
         final Valve valve = getNext();
