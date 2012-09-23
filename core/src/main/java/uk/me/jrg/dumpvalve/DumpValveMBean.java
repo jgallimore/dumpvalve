@@ -2,10 +2,6 @@ package uk.me.jrg.dumpvalve;
 
 public interface DumpValveMBean {
 
-	public abstract void setTimeRequests(boolean timeRequests);
-
-	public abstract boolean isTimeRequests();
-
 	public abstract void setEnabled(boolean enabled);
 
 	public abstract boolean isEnabled();

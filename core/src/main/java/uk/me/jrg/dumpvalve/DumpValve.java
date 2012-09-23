@@ -15,13 +15,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DumpValve extends ValveBase implements DumpValveMBean {
 
 	private String urlPattern = ".*";
-	private String logRequestPattern = "";
-	private boolean enabled = false;
-	private boolean timeRequests = true;
+	private String logRequestPattern = ".*";
+	private boolean enabled = true;
 
 	@Override
 	public String getUrlPattern() {
@@ -51,16 +52,6 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 	@Override
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
-	}
-
-	@Override
-	public boolean isTimeRequests() {
-		return timeRequests;
-	}
-
-	@Override
-	public void setTimeRequests(boolean timeRequests) {
-		this.timeRequests = timeRequests;
 	}
 
 	public DumpValve() {
@@ -105,6 +96,19 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 	@Override
 	public void invoke(Request request, Response response) throws IOException,
 			ServletException {
+
+		// if not enabled, invoke the next valve and exit
+		if (! enabled) {
+			getNext().invoke(request, response);
+			return;
+		}
+		
+		// check that the URI pattern matches
+		Pattern pattern = Pattern.compile(urlPattern);
+		if (! pattern.matcher(request.getRequestURI()).matches()) {
+			getNext().invoke(request, response);
+			return;
+		}
 
 		try {
 			String postBody = "";
@@ -156,11 +160,26 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 				resetField(request, "usingReader");
 			}
 
+			long startTime = System.currentTimeMillis();
+			
 			final Valve valve = getNext();
 			valve.invoke(request, response);
+			
+			long endTime = System.currentTimeMillis();
+			long timeTaken = endTime - startTime;
 
 			System.out.println("=============================================");
 			System.out.println("URL: " + request.getRequestURI());
+			System.out.println("Time taken: " + timeTaken + " ms");
+			
+			Pattern logPattern = Pattern.compile(logRequestPattern);
+			Matcher matcher = logPattern.matcher(postBody);
+			if (matcher.matches()) {
+				postBody = matcher.group(0); 
+			} else {
+				postBody = "";
+			}
+			
 			System.out.println(postBody);
 			System.out.println("=============================================");
 		} catch (Throwable t) {
