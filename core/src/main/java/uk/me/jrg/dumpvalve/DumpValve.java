@@ -23,6 +23,8 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 	private String urlPattern = ".*";
 	private String logRequestPattern = ".*";
 	private boolean enabled = true;
+	private Pattern compiledUrlPattern = Pattern.compile(urlPattern);
+	private Pattern compiledLogRequestPattern = Pattern.compile(logRequestPattern);
 
 	@Override
 	public String getUrlPattern() {
@@ -32,6 +34,7 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 	@Override
 	public void setUrlPattern(String urlPattern) {
 		this.urlPattern = urlPattern;
+		this.compiledUrlPattern = Pattern.compile(urlPattern);
 	}
 
 	@Override
@@ -42,6 +45,7 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 	@Override
 	public void setLogRequestPattern(String logRequestPattern) {
 		this.logRequestPattern = logRequestPattern;
+		this.compiledLogRequestPattern = Pattern.compile(logRequestPattern);
 	}
 
 	@Override
@@ -104,8 +108,7 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 		}
 		
 		// check that the URI pattern matches
-		Pattern pattern = Pattern.compile(urlPattern);
-		if (! pattern.matcher(request.getRequestURI()).matches()) {
+		if (! compiledUrlPattern.matcher(request.getRequestURI()).find()) {
 			getNext().invoke(request, response);
 			return;
 		}
@@ -172,9 +175,8 @@ public class DumpValve extends ValveBase implements DumpValveMBean {
 			System.out.println("URL: " + request.getRequestURI());
 			System.out.println("Time taken: " + timeTaken + " ms");
 			
-			Pattern logPattern = Pattern.compile(logRequestPattern);
-			Matcher matcher = logPattern.matcher(postBody);
-			if (matcher.matches()) {
+			Matcher matcher = compiledLogRequestPattern.matcher(postBody);
+			if (matcher.find()) {
 				postBody = matcher.group(0); 
 			} else {
 				postBody = "";
