@@ -3,6 +3,8 @@ package uk.me.jrg.dumpvalve;
 import junit.framework.Assert;
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
+import org.apache.catalina.deploy.FilterDef;
+import org.apache.catalina.deploy.FilterMap;
 import org.apache.catalina.startup.CatalinaProperties;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.httpclient.HttpClient;
@@ -12,6 +14,7 @@ import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import uk.me.jrg.dumpvalve.filter.DumpValveFilter;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -68,10 +71,19 @@ public class DumpValveTest {
 
         tomcat.setBaseDir(catalinaBase.getAbsolutePath());
         tomcat.getHost().setAppBase(appBase.getAbsolutePath());
-        tomcat.getHost().getPipeline().addValve(new DumpValve());
         Context ctx = tomcat.addContext("/echo", System.getProperty("java.io.tmpdir"));
         Tomcat.addServlet(ctx, "EchoServlet", new EchoServlet());
         ctx.addServletMapping("/*", "EchoServlet");
+
+        final FilterDef filterDef = new FilterDef();
+        filterDef.setFilter(new DumpValveFilter());
+        filterDef.setFilterName("DumpValveFilter");
+        ctx.addFilterDef(filterDef);
+        final FilterMap filterMap = new FilterMap();
+        filterMap.addURLPattern("/*");
+        filterMap.setFilterName("DumpValveFilter");
+        ctx.addFilterMap(filterMap);
+
         tomcat.start();
     }
 
