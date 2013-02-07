@@ -8,7 +8,7 @@ import java.util.List;
 public class Configuration {
     private static Configuration instance = new Configuration();
 
-    private boolean enabled;
+    private boolean enabled = true;
     private final List<String> contexts = new ArrayList<String>();
 
     public static Configuration getInstance() {
